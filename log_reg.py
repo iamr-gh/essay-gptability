@@ -63,6 +63,16 @@ def predict(text: str, b: ndarray, vocab_index: dict[str, int]):
     return y_hat > 0.5
 
 
+# predict continuous
+def predict_cont(text: str, b: ndarray, vocab_index: dict[str, int]):
+    x = input_to_vector(text, vocab_index)
+    y_hat = b.dot(x)
+
+    # clamp between 0 and 1
+    y_hat = np.clip(y_hat, 0, 1)
+    return y_hat
+
+
 def input_to_vector(text: str, vocab_index: dict[str, int]) -> ndarray:
     val = np.zeros(len(vocab_index) + 1)
     val[-1] = 1  # bias
@@ -128,17 +138,33 @@ def main():
     print(f"accuracy:{accuracy(preds, correct)}")
     print(f"f1_score:{f1_score(preds, correct)}")
 
-    # TODO: need to do a train/test split
+    # read in original data, and then use this to create data for a secondary classification task
+    gen_df = pd.read_csv("generated.csv")
 
-    # trial_df = pd.read_csv("generated_with_labels.csv")
-    # trial_preds = np.zeros(trial_df["generation"].count(), dtype=bool)
-    # for i in tqdm(range(trial_df["generation"].count())):
-    #     text = trial_df["generation"][i]
-    #     trial_preds[i] = predict(text, b, vocab_index)
+    # for each prompt, error is the difference between the human and AI generated text
+    # is there a double dipping issue?
 
-    # data = {"id": trial_df["id"], "label": trial_preds}
-    # pred_df = pd.DataFrame(data)
-    # pred_df.to_csv("np_pred.csv", index=False)
+    # for now, ignore it...
+    # ai is 1, human is 0
+    errors = []
+    for i in range(len(gen_df["ai_output"])):
+        ai_gen = str(gen_df["ai_output"][i])
+        human_gen = str(gen_df["human_output"][i])
+        ai_pred = predict_cont(ai_gen, b, vocab_index)
+        human_pred = predict_cont(human_gen, b, vocab_index)
+        # print(ai_pred, human_pred)
+
+        # multiple ways to prhase this error
+        error = abs(1 - ai_pred) + abs(human_pred - 0)
+        assert error == (1 - ai_pred) + human_pred
+        errors.append(error)
+
+        # error = abs(ai_pred - human_pred)
+        # gen_df["error"][i] = error
+
+    gen_df["error"] = np.array(errors)
+    print(errors)
+    gen_df.to_csv("generated_post_classification.csv", index=False)
 
 
 if __name__ == "__main__":
