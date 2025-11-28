@@ -22,37 +22,37 @@ def ll(b: ndarray, y: ndarray, x) -> float:
     acc = 0
     for i, y_i in enumerate(y):
         x_i = x[i]
-        bTx_i = x_i.dot(b)  # prediction
-        acc += y_i * (bTx_i) - np.log(1 + np.exp(bTx_i))
+        btx_i = x_i.dot(b)  # prediction
+        acc += y_i * (btx_i) - np.log(1 + np.exp(btx_i))
     return acc
 
 
 # collapsing for loop is over 50x faster
 def ll_fast(b: ndarray, y: ndarray, x) -> float:
-    bTx = x * b
-    return float(np.sum(bTx * y - np.log(1 + np.exp(bTx))))
+    btx = x * b
+    return float(np.sum(btx * y - np.log(1 + np.exp(btx))))
 
 
 def grad_ll(b: ndarray, y_i: ndarray, x_i: ndarray) -> ndarray:
     return (sigmoid(x_i.dot(b)) - y_i) * x_i
 
 
-# X is sparse, hence untyped
+# x is sparse, hence untyped
 def logistic_regression(
-    X, Y: ndarray, learning_rate: float, num_step: int, loss_capture=1000
+    x, y: ndarray, learning_rate: float, num_step: int, loss_capture=1000
 ) -> tuple[ndarray, ndarray]:
-    row_len = X.shape[1]
+    row_len = x.shape[1]
 
     b = np.zeros(row_len)
     lls = np.zeros((num_step // loss_capture) + 1)
     for i in tqdm(range(num_step)):
         if i % loss_capture == 0:
-            lls[(i // loss_capture)] = ll_fast(b, Y, X)
-        rand_index = i % len(Y)
-        row = X[rand_index]
-        label = Y[rand_index]
+            lls[(i // loss_capture)] = ll_fast(b, y, x)
+        rand_index = i % len(y)
+        row = x[rand_index]
+        label = y[rand_index]
         b = b - learning_rate * grad_ll(b, label, row)
-    lls[-1] = ll_fast(b, Y, X)
+    lls[-1] = ll_fast(b, y, x)
 
     return b, lls
 
@@ -84,7 +84,7 @@ def input_to_vector(text: str, vocab_index: dict[str, int]) -> ndarray:
 
 def main():
     print("before data read")
-    df: pd.DataFrame = pd.read_csv("generated_with_labels.csv")
+    df: pd.dataframe = pd.read_csv("generated_with_labels.csv")
     train_df, test_df = train_test_split(df, test_size=0.2)
 
     print(f"train size:{len(train_df)}, test size:{len(test_df)}")
@@ -102,7 +102,7 @@ def main():
     label_ids = np.array(train_df["label"]).astype(float)
     print(label_ids)
 
-    # next step: create a sparse D x V matrix
+    # next step: create a sparse d x v matrix
     # note a bias term will be eventually needed
 
     print("before sparse mat population")
@@ -112,13 +112,28 @@ def main():
 
     print("before logistic regression")
 
-    epochs = 2
+    epochs = 1
 
     b, lls = logistic_regression(
-        mat_csr, label_ids, 1e-4, epochs * len(label_ids), loss_capture=10
+        mat_csr, label_ids, 1e-4, epochs * len(label_ids), loss_capture=1
     )
     sns.lineplot(x=range(len(lls)), y=lls)
-    plt.savefig("np_best.png")
+    # set y axis font size
+    plt.gca().axes.yaxis.label.set_size(14)
+    # set x axis font size
+    plt.gca().axes.xaxis.label.set_size(14)
+
+    # set y axis title
+    plt.gca().set_ylabel("log likelihood")
+    # set x axis title
+    plt.gca().set_xlabel("iteration")
+
+    # set title
+    plt.title("Logistic Regression Loss over Iterations")
+    # set font size
+    plt.gca().axes.title.set_size(14)
+
+    plt.savefig("first_model_loss.png", dpi=300)
 
     # print("load test data")
     # test_df = pd.read_csv("generated_with_labels.csv")
@@ -141,7 +156,7 @@ def main():
     # read in original data, and then use this to create data for a secondary classification task
     gen_df = pd.read_csv("generated.csv")
 
-    # for each prompt, error is the difference between the human and AI generated text
+    # for each prompt, error is the difference between the human and ai generated text
     # is there a double dipping issue?
 
     # for now, ignore it...
@@ -162,9 +177,9 @@ def main():
         # error = abs(ai_pred - human_pred)
         # gen_df["error"][i] = error
 
-    gen_df["error"] = np.array(errors)
-    print(errors)
-    gen_df.to_csv("generated_post_classification.csv", index=False)
+    # gen_df["error"] = np.array(errors)
+    # print(errors)
+    # gen_df.to_csv("generated_post_classification.csv", index=False)
 
 
 if __name__ == "__main__":

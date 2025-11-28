@@ -27,10 +27,12 @@ def better_tokenize(data: str) -> list[str]:
     return out
 
 
-def derive_vocab(df: pd.DataFrame) -> tuple[list[str], dict[str, int]]:
+def derive_vocab(
+    df: pd.DataFrame, key="generation"
+) -> tuple[list[str], dict[str, int]]:
     # dictionary require minimum of 250 word frequency for inclusion
     all_words = Counter()
-    for row in tqdm(df["generation"]):
+    for row in tqdm(df[key]):
         words = better_tokenize(row)
         all_words.update(words)
 
@@ -48,8 +50,8 @@ def derive_vocab(df: pd.DataFrame) -> tuple[list[str], dict[str, int]]:
     return vocabulary, vocab_index
 
 
-def sparse_dv_mat(docs_df: pd.DataFrame, vocab_index: dict[str, int]):
-    docs = docs_df["generation"]
+def sparse_dv_mat(docs_df: pd.DataFrame, vocab_index: dict[str, int], key="generation"):
+    docs = docs_df[key]
     rows = []
     cols = []
     vals = []
