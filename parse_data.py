@@ -1,15 +1,18 @@
+from sys import argv
 import pandas as pd
 
 
 def main():
     # need to read in the
     # output to a csv with label 0/1 for AI, and generation as the text
-    df = pd.read_csv("generated.csv")
+    filename = argv[1]
+
+    df = pd.read_csv(filename)
     labels = []
     generations = []
     for i in range(len(df)):
-        ai_gen = df["ai_output"][i]
-        human_gen = df["human_output"][i]
+        ai_gen = df["response"][i]
+        human_gen = df["full_text"][i]
 
         generations.append(human_gen)
         labels.append(0)
@@ -23,7 +26,7 @@ def main():
             "label": labels,
         }
     )
-    out_df.to_csv("generated_with_labels.csv", index=False)
+    out_df.to_csv(f"{filename.split('.')[0]}_with_labels.csv", index=False)
 
 
 if __name__ == "__main__":

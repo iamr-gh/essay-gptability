@@ -7,6 +7,7 @@ import numpy as np
 from numpy import ndarray
 from scipy import sparse
 from sklearn.model_selection import train_test_split
+from sys import argv
 import pdb
 
 import pandas as pd
@@ -86,18 +87,20 @@ def input_to_vector(text: str, vocab_index: dict[str, int]) -> ndarray:
 
 
 def main():
+    filename = argv[1]
     print("before data read")
-    df: pd.dataframe = pd.read_csv("generated_post_classification.csv")
+    df: pd.dataframe = pd.read_csv(filename)
+
     train_df, test_df = train_test_split(df, test_size=0.2)
 
     print(f"train size:{len(train_df)}, test size:{len(test_df)}")
     print(f"train data: {train_df} test data: {test_df}")
 
     print("before vocab generation")
-    vocabulary, vocab_index = derive_vocab(train_df, key="assignment")
+    vocabulary, vocab_index = derive_vocab(train_df, key="user_prompt")
 
     print("before df split")
-    docs = train_df["assignment"]
+    docs = train_df["user_prompt"]
     labels = train_df["error"]
 
     print("before label map generation")
@@ -110,7 +113,7 @@ def main():
 
     print("before sparse mat population")
 
-    mat_csr = sparse_dv_mat(train_df, vocab_index, key="assignment").tocsr()
+    mat_csr = sparse_dv_mat(train_df, vocab_index, key="user_prompt").tocsr()
     # coo is probably the correct way to do it
 
     print("before logistic regression")
@@ -136,7 +139,8 @@ def main():
     # set font size
     plt.gca().axes.title.set_size(14)
 
-    plt.savefig("second_model_loss.png", dpi=300)
+    plt.savefig(f"second_model_loss_{filename}.png", dpi=300)
+    plt.close()
 
     # print("load test data")
     # test_df = pd.read_csv("generated_with_labels.csv")
@@ -149,14 +153,24 @@ def main():
 
     mse_baseline = np.mean((test_df["error"] - avg_error) ** 2)
 
-    preds = np.zeros(test_df["assignment"].count(), dtype=float)
+    preds = np.zeros(test_df["user_prompt"].count(), dtype=float)
     i = 0
-    for idx in tqdm(test_df["assignment"].keys()):
-        text = test_df["assignment"][idx]
+    for idx in tqdm(test_df["user_prompt"].keys()):
+        text = test_df["user_prompt"][idx]
         preds[i] = predict_cont(text, b, vocab_index)
         i += 1
 
     mse_model = np.mean((test_df["error"] - preds) ** 2)
+
+    # plot a frequency distribution of error over the train dataset
+    # this is the distribution of the first model itself
+    plt.hist(preds, bins=100)
+    plt.xlabel("error")
+    plt.ylabel("frequency")
+    plt.title("Distribution of Predictions per Prompt")
+    plt.savefig(
+        f"second_model_prediction_histogram_{filename.split('.')[0]}.png", dpi=300
+    )
 
     print(f"mse_baseline:{mse_baseline}")
     print(f"mse_model:{mse_model}")

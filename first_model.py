@@ -9,6 +9,7 @@ import pdb
 import pandas as pd
 import seaborn as sns
 import matplotlib.pyplot as plt
+from sys import argv
 
 from p1_utils import *
 
@@ -83,9 +84,13 @@ def input_to_vector(text: str, vocab_index: dict[str, int]) -> ndarray:
 
 
 def main():
+    filename = argv[1]
+
     print("before data read")
-    df: pd.dataframe = pd.read_csv("generated_with_labels.csv")
-    train_df, test_df = train_test_split(df, test_size=0.2)
+    # all these things need to be made generic
+    df: pd.dataframe = pd.read_csv(filename)
+
+    train_df, test_df = train_test_split(df, test_size=0.5)
 
     print(f"train size:{len(train_df)}, test size:{len(test_df)}")
     print(f"train data: {train_df} test data: {test_df}")
@@ -114,8 +119,9 @@ def main():
 
     epochs = 1
 
+    # let's make it really bad
     b, lls = logistic_regression(
-        mat_csr, label_ids, 1e-4, epochs * len(label_ids), loss_capture=1
+        mat_csr, label_ids, 1e-6, int(epochs * len(label_ids) * 0.3), loss_capture=30
     )
     sns.lineplot(x=range(len(lls)), y=lls)
     # set y axis font size
@@ -133,7 +139,8 @@ def main():
     # set font size
     plt.gca().axes.title.set_size(14)
 
-    plt.savefig("first_model_loss.png", dpi=300)
+    plt.savefig(f"first_model_loss_{filename.split('.')[0]}.png", dpi=300)
+    plt.close()
 
     # print("load test data")
     # test_df = pd.read_csv("generated_with_labels.csv")
@@ -154,7 +161,8 @@ def main():
     print(f"f1_score:{f1_score(preds, correct)}")
 
     # read in original data, and then use this to create data for a secondary classification task
-    gen_df = pd.read_csv("generated.csv")
+    second_fname = argv[2]
+    gen_df = pd.read_csv(second_fname)
 
     # for each prompt, error is the difference between the human and ai generated text
     # is there a double dipping issue?
@@ -162,9 +170,9 @@ def main():
     # for now, ignore it...
     # ai is 1, human is 0
     errors = []
-    for i in range(len(gen_df["ai_output"])):
-        ai_gen = str(gen_df["ai_output"][i])
-        human_gen = str(gen_df["human_output"][i])
+    for i in range(len(gen_df["response"])):
+        ai_gen = str(gen_df["response"][i])
+        human_gen = str(gen_df["full_text"][i])
         ai_pred = predict_cont(ai_gen, b, vocab_index)
         human_pred = predict_cont(human_gen, b, vocab_index)
         # print(ai_pred, human_pred)
@@ -177,9 +185,22 @@ def main():
         # error = abs(ai_pred - human_pred)
         # gen_df["error"][i] = error
 
-    # gen_df["error"] = np.array(errors)
+    gen_df["error"] = np.array(errors)
+
+    # print first model distirbution of errors
+
     # print(errors)
-    # gen_df.to_csv("generated_post_classification.csv", index=False)
+    gen_df.to_csv(
+        f"generated_post_classification_{filename.split('.')[0]}.csv", index=False
+    )
+
+    plt.hist(errors, bins=100)
+    plt.xlabel("error")
+    plt.ylabel("frequency")
+    plt.title("Distribution of Predictions per Prompt")
+    plt.savefig(f"first_model_error_histogram_{filename.split('.')[0]}.png", dpi=300)
+
+    # plt.show()
 
 
 if __name__ == "__main__":

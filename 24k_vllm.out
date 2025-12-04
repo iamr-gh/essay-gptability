@@ -1,0 +1,26 @@
+Loading prompts...
+Loaded 24728 prompts
+Loading model: Qwen/Qwen2.5-7B-Instruct
+INFO 12-03 00:49:35 [utils.py:253] non-default args: {'trust_remote_code': True, 'max_model_len': 4096, 'disable_log_stats': True, 'enforce_eager': True, 'model': 'Qwen/Qwen2.5-7B-Instruct'}
+The argument `trust_remote_code` is to be used with Auto classes. It has no effect here and is ignored.
+INFO 12-03 00:49:45 [model.py:631] Resolved architecture: Qwen2ForCausalLM
+INFO 12-03 00:49:45 [model.py:1745] Using max model len 4096
+INFO 12-03 00:49:45 [scheduler.py:216] Chunked prefill is enabled with max_num_batched_tokens=8192.
+INFO 12-03 00:49:45 [vllm.py:500] Cudagraph is disabled under eager mode
+[1;36m(EngineCore_DP0 pid=59586)[0;0m INFO 12-03 00:49:46 [core.py:93] Initializing a V1 LLM engine (v0.11.2) with config: model='Qwen/Qwen2.5-7B-Instruct', speculative_config=None, tokenizer='Qwen/Qwen2.5-7B-Instruct', skip_tokenizer_init=False, tokenizer_mode=auto, revision=None, tokenizer_revision=None, trust_remote_code=True, dtype=torch.bfloat16, max_seq_len=4096, download_dir=None, load_format=auto, tensor_parallel_size=1, pipeline_parallel_size=1, data_parallel_size=1, disable_custom_all_reduce=False, quantization=None, enforce_eager=True, kv_cache_dtype=auto, device_config=cuda, structured_outputs_config=StructuredOutputsConfig(backend='auto', disable_fallback=False, disable_any_whitespace=False, disable_additional_properties=False, reasoning_parser='', reasoning_parser_plugin='', enable_in_reasoning=False), observability_config=ObservabilityConfig(show_hidden_metrics_for_version=None, otlp_traces_endpoint=None, collect_detailed_traces=None), seed=0, served_model_name=Qwen/Qwen2.5-7B-Instruct, enable_prefix_caching=True, enable_chunked_prefill=True, pooler_config=None, compilation_config={'level': None, 'mode': <CompilationMode.NONE: 0>, 'debug_dump_path': None, 'cache_dir': '', 'compile_cache_save_format': 'binary', 'backend': 'inductor', 'custom_ops': ['all'], 'splitting_ops': None, 'compile_mm_encoder': False, 'use_inductor': None, 'compile_sizes': [], 'inductor_compile_config': {'enable_auto_functionalized_v2': False, 'combo_kernels': True, 'benchmark_combo_kernel': True}, 'inductor_passes': {}, 'cudagraph_mode': <CUDAGraphMode.NONE: 0>, 'cudagraph_num_of_warmups': 0, 'cudagraph_capture_sizes': [], 'cudagraph_copy_inputs': False, 'cudagraph_specialize_lora': True, 'use_inductor_graph_partition': False, 'pass_config': {}, 'max_cudagraph_capture_size': 0, 'local_cache_dir': None}
+[1;36m(EngineCore_DP0 pid=59586)[0;0m INFO 12-03 00:49:48 [parallel_state.py:1208] world_size=1 rank=0 local_rank=0 distributed_init_method=tcp://10.164.10.5:40149 backend=nccl
+[W1203 00:49:48.421403279 socket.cpp:767] [c10d] The client socket cannot be initialized to connect to [gl1505.arc-ts.umich.edu]:40149 (errno: 97 - Address family not supported by protocol).
+[Gloo] Rank 0 is connected to 0 peer ranks. Expected number of connected peer ranks is : 0
+[Gloo] Rank 0 is connected to 0 peer ranks. Expected number of connected peer ranks is : 0
+[Gloo] Rank 0 is connected to 0 peer ranks. Expected number of connected peer ranks is : 0
+[Gloo] Rank 0 is connected to 0 peer ranks. Expected number of connected peer ranks is : 0
+[Gloo] Rank 0 is connected to 0 peer ranks. Expected number of connected peer ranks is : 0
+[Gloo] Rank 0 is connected to 0 peer ranks. Expected number of connected peer ranks is : 0
+[1;36m(EngineCore_DP0 pid=59586)[0;0m INFO 12-03 00:49:48 [parallel_state.py:1394] rank 0 in world size 1 is assigned as DP rank 0, PP rank 0, TP rank 0, EP rank 0
+[1;36m(EngineCore_DP0 pid=59586)[0;0m INFO 12-03 00:49:49 [gpu_model_runner.py:3259] Starting to load model Qwen/Qwen2.5-7B-Instruct...
+[1;36m(EngineCore_DP0 pid=59586)[0;0m [2025-12-03 00:49:49] INFO _optional_torch_c_dlpack.py:88: JIT-compiling torch-c-dlpack-ext to cache...
+[1;36m(EngineCore_DP0 pid=59586)[0;0m /home/iamr/.local/lib/python3.13/site-packages/tvm_ffi/_optional_torch_c_dlpack.py:129: UserWarning: Failed to JIT torch c dlpack extension, EnvTensorAllocator will not be enabled.
+[1;36m(EngineCore_DP0 pid=59586)[0;0m We recommend installing via `pip install torch-c-dlpack-ext`
+[1;36m(EngineCore_DP0 pid=59586)[0;0m   warnings.warn(
+[1;36m(EngineCore_DP0 pid=59586)[0;0m INFO 12-03 00:49:52 [cuda.py:418] Valid backends: ['FLASH_ATTN', 'FLASHINFER', 'TRITON_ATTN', 'FLEX_ATTENTION']
+[1;36m(EngineCore_DP0 pid=59586)[0;0m INFO 12-03 00:49:52 [cuda.py:427] Using FLASH_ATTN backend.
