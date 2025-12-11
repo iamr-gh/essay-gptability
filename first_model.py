@@ -1,10 +1,10 @@
+# sonnet 4.5
 # starting with p1 baseline implementation
 from tqdm import tqdm
 import numpy as np
 from numpy import ndarray
 from scipy import sparse
 from sklearn.model_selection import train_test_split
-import pdb
 
 import pandas as pd
 import seaborn as sns
@@ -84,11 +84,32 @@ def input_to_vector(text: str, vocab_index: dict[str, int]) -> ndarray:
 
 
 def main():
+    # Set global plotting parameters for poster quality
+    plt.rcParams.update(
+        {
+            "font.size": 24,
+            "axes.labelsize": 28,
+            "axes.titlesize": 32,
+            "xtick.labelsize": 22,
+            "ytick.labelsize": 22,
+            "legend.fontsize": 22,
+            "figure.figsize": (12, 8),
+            "lines.linewidth": 3,
+            "axes.linewidth": 2,
+            "xtick.major.width": 2,
+            "ytick.major.width": 2,
+            "xtick.major.size": 8,
+            "ytick.major.size": 8,
+        }
+    )
+
+    sns.set_style("dark")
+    sns.set_context("poster")
+
     filename = argv[1]
 
     print("before data read")
-    # all these things need to be made generic
-    df: pd.dataframe = pd.read_csv(filename)
+    df: pd.DataFrame = pd.read_csv(filename)
 
     train_df, test_df = train_test_split(df, test_size=0.5)
 
@@ -107,46 +128,34 @@ def main():
     label_ids = np.array(train_df["label"]).astype(float)
     print(label_ids)
 
-    # next step: create a sparse d x v matrix
-    # note a bias term will be eventually needed
-
     print("before sparse mat population")
 
     mat_csr = sparse_dv_mat(train_df, vocab_index).tocsr()
-    # coo is probably the correct way to do it
 
     print("before logistic regression")
 
     epochs = 1
 
-    # let's make it really bad
     b, lls = logistic_regression(
         mat_csr, label_ids, 1e-6, int(epochs * len(label_ids) * 0.3), loss_capture=30
     )
-    sns.lineplot(x=range(len(lls)), y=lls)
-    # set y axis font size
-    plt.gca().axes.yaxis.label.set_size(14)
-    # set x axis font size
-    plt.gca().axes.xaxis.label.set_size(14)
 
-    # set y axis title
-    plt.gca().set_ylabel("log likelihood")
-    # set x axis title
-    plt.gca().set_xlabel("iteration")
-
-    # set title
-    plt.title("Logistic Regression Loss over Iterations")
-    # set font size
-    plt.gca().axes.title.set_size(14)
-
-    plt.savefig(f"first_model_loss_{filename.split('.')[0]}.png", dpi=300)
+    # Plot 1: Log Likelihood over Iterations
+    fig, ax = plt.subplots(figsize=(14, 9))
+    ax.plot(range(len(lls)), lls, linewidth=3.5, color="#2E86AB")
+    ax.set_ylabel("Log Likelihood", fontweight="bold")
+    ax.set_xlabel("Iteration", fontweight="bold")
+    ax.set_title("Logistic Regression Training Progress", fontweight="bold", pad=20)
+    ax.grid(True, alpha=0.3, linewidth=1.5)
+    ax.spines["top"].set_visible(False)
+    ax.spines["right"].set_visible(False)
+    plt.tight_layout()
+    plt.savefig(
+        f"first_model_loss_{filename.split('.')[0]}.png", dpi=300, bbox_inches="tight"
+    )
     plt.close()
 
-    # print("load test data")
-    # test_df = pd.read_csv("generated_with_labels.csv")
-
     print("run predictions")
-    # res = np.zeros(test_df["generation"].count(), dtype=bool)
     preds = np.zeros(test_df["generation"].count(), dtype=bool)
     correct = np.array(test_df["label"], dtype=bool)
 
@@ -160,47 +169,53 @@ def main():
     print(f"accuracy:{accuracy(preds, correct)}")
     print(f"f1_score:{f1_score(preds, correct)}")
 
-    # read in original data, and then use this to create data for a secondary classification task
+    # Secondary classification task
     second_fname = argv[2]
     gen_df = pd.read_csv(second_fname)
 
-    # for each prompt, error is the difference between the human and ai generated text
-    # is there a double dipping issue?
-
-    # for now, ignore it...
-    # ai is 1, human is 0
     errors = []
     for i in range(len(gen_df["response"])):
         ai_gen = str(gen_df["response"][i])
         human_gen = str(gen_df["full_text"][i])
         ai_pred = predict_cont(ai_gen, b, vocab_index)
         human_pred = predict_cont(human_gen, b, vocab_index)
-        # print(ai_pred, human_pred)
 
-        # multiple ways to prhase this error
+        # revisit this formula
+        # goes from range of 0 to 2
+        # where it is the number of prdiections wrong
+
+        # fitting to a value of 1 means that the model is consistently wrong
+        # always predicting 0.5 might be a local minima?
         error = abs(1 - ai_pred) + abs(human_pred - 0)
         assert error == (1 - ai_pred) + human_pred
         errors.append(error)
 
-        # error = abs(ai_pred - human_pred)
-        # gen_df["error"][i] = error
-
     gen_df["error"] = np.array(errors)
 
-    # print first model distirbution of errors
-
-    # print(errors)
     gen_df.to_csv(
         f"generated_post_classification_{filename.split('.')[0]}.csv", index=False
     )
 
-    plt.hist(errors, bins=100)
-    plt.xlabel("error")
-    plt.ylabel("frequency")
-    plt.title("Distribution of Predictions per Prompt")
-    plt.savefig(f"first_model_error_histogram_{filename.split('.')[0]}.png", dpi=300)
-
-    # plt.show()
+    # Plot 2: Error Distribution Histogram
+    fig, ax = plt.subplots(figsize=(14, 9))
+    ax.hist(
+        errors, bins=100, color="#A23B72", edgecolor="black", linewidth=1.2, alpha=0.85
+    )
+    ax.set_xlabel("Prediction Error", fontweight="bold")
+    ax.set_ylabel("Frequency", fontweight="bold")
+    ax.set_title(
+        "Distribution of Prediction Errors per Prompt", fontweight="bold", pad=20
+    )
+    ax.grid(True, alpha=0.3, axis="y", linewidth=1.5)
+    ax.spines["top"].set_visible(False)
+    ax.spines["right"].set_visible(False)
+    plt.tight_layout()
+    plt.savefig(
+        f"first_model_error_histogram_{filename.split('.')[0]}.png",
+        dpi=300,
+        bbox_inches="tight",
+    )
+    plt.close()
 
 
 if __name__ == "__main__":

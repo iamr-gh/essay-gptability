@@ -1,6 +1,6 @@
 # first model, what about second model
 
-# starting with logistical regressin just like anything else
+# starting with logistical regression just like anything else
 # starting with p1 baseline implementation
 from tqdm import tqdm
 import numpy as np
@@ -8,7 +8,6 @@ from numpy import ndarray
 from scipy import sparse
 from sklearn.model_selection import train_test_split
 from sys import argv
-import pdb
 
 import pandas as pd
 import seaborn as sns
@@ -87,9 +86,31 @@ def input_to_vector(text: str, vocab_index: dict[str, int]) -> ndarray:
 
 
 def main():
+    # Set global plotting parameters for poster quality
+    plt.rcParams.update(
+        {
+            "font.size": 24,
+            "axes.labelsize": 28,
+            "axes.titlesize": 32,
+            "xtick.labelsize": 22,
+            "ytick.labelsize": 22,
+            "legend.fontsize": 22,
+            "figure.figsize": (12, 8),
+            "lines.linewidth": 3,
+            "axes.linewidth": 2,
+            "xtick.major.width": 2,
+            "ytick.major.width": 2,
+            "xtick.major.size": 8,
+            "ytick.major.size": 8,
+        }
+    )
+
+    sns.set_style("dark")
+    sns.set_context("poster")
+
     filename = argv[1]
     print("before data read")
-    df: pd.dataframe = pd.read_csv(filename)
+    df: pd.DataFrame = pd.read_csv(filename)
 
     train_df, test_df = train_test_split(df, test_size=0.2)
 
@@ -108,42 +129,30 @@ def main():
     label_ids = np.array(train_df["error"]).astype(float)
     print(label_ids)
 
-    # next step: create a sparse d x v matrix
-    # note a bias term will be eventually needed
-
     print("before sparse mat population")
 
     mat_csr = sparse_dv_mat(train_df, vocab_index, key="user_prompt").tocsr()
-    # coo is probably the correct way to do it
 
     print("before logistic regression")
 
     epochs = 10
 
     b, lls = logistic_regression(
-        mat_csr, label_ids, 1e-4, epochs * len(label_ids), loss_capture=1
+        mat_csr, label_ids, 1e-5, epochs * len(label_ids), loss_capture=1
     )
-    sns.lineplot(x=range(len(lls)), y=lls)
-    # set y axis font size
-    plt.gca().axes.yaxis.label.set_size(14)
-    # set x axis font size
-    plt.gca().axes.xaxis.label.set_size(14)
 
-    # set y axis title
-    plt.gca().set_ylabel("log likelihood")
-    # set x axis title
-    plt.gca().set_xlabel("iteration")
-
-    # set title
-    plt.title("Logistic Regression Loss over Iterations")
-    # set font size
-    plt.gca().axes.title.set_size(14)
-
-    plt.savefig(f"second_model_loss_{filename}.png", dpi=300)
+    # Plot 1: Log Likelihood over Iterations
+    fig, ax = plt.subplots(figsize=(14, 9))
+    ax.plot(range(len(lls)), lls, linewidth=3.5, color="#2E86AB")
+    ax.set_ylabel("Log Likelihood", fontweight="bold")
+    ax.set_xlabel("Iteration", fontweight="bold")
+    ax.set_title("Second Model: Training Progress", fontweight="bold", pad=20)
+    ax.grid(True, alpha=0.3, linewidth=1.5)
+    ax.spines["top"].set_visible(False)
+    ax.spines["right"].set_visible(False)
+    plt.tight_layout()
+    plt.savefig(f"second_model_loss_{filename}.png", dpi=300, bbox_inches="tight")
     plt.close()
-
-    # print("load test data")
-    # test_df = pd.read_csv("generated_with_labels.csv")
 
     print("run predictions")
     # this part is now different
@@ -162,15 +171,40 @@ def main():
 
     mse_model = np.mean((test_df["error"] - preds) ** 2)
 
-    # plot a frequency distribution of error over the train dataset
-    # this is the distribution of the first model itself
-    plt.hist(preds, bins=100)
-    plt.xlabel("error")
-    plt.ylabel("frequency")
-    plt.title("Distribution of Predictions per Prompt")
-    plt.savefig(
-        f"second_model_prediction_histogram_{filename.split('.')[0]}.png", dpi=300
+    # Plot 2: Distribution of Predictions
+    fig, ax = plt.subplots(figsize=(14, 9))
+    ax.hist(
+        preds, bins=100, color="#E63946", edgecolor="black", linewidth=1.2, alpha=0.85
     )
+    ax.set_xlabel("Predicted Error", fontweight="bold")
+    ax.set_ylabel("Frequency", fontweight="bold")
+    ax.set_title(
+        "Distribution of Model Predictions per Prompt", fontweight="bold", pad=20
+    )
+    ax.grid(True, alpha=0.3, axis="y", linewidth=1.5)
+    ax.spines["top"].set_visible(False)
+    ax.spines["right"].set_visible(False)
+
+    # Add text box with MSE results
+    textstr = f"MSE Baseline: {mse_baseline:.4f}\nMSE Model: {mse_model:.4f}"
+    props = dict(boxstyle="round", facecolor="wheat", alpha=0.8)
+    ax.text(
+        0.65,
+        0.95,
+        textstr,
+        transform=ax.transAxes,
+        fontsize=20,
+        verticalalignment="top",
+        bbox=props,
+    )
+
+    plt.tight_layout()
+    plt.savefig(
+        f"second_model_prediction_histogram_{filename.split('.')[0]}.png",
+        dpi=300,
+        bbox_inches="tight",
+    )
+    plt.close()
 
     print(f"mse_baseline:{mse_baseline}")
     print(f"mse_model:{mse_model}")
@@ -178,3 +212,4 @@ def main():
 
 if __name__ == "__main__":
     main()
+
