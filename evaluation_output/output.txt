@@ -1,0 +1,157 @@
+iamr@Ibrahims-Laptop ~/D/s/5/essay_research (main)> uv run transformer_second_eval.py --data_path generated_post_classification_full_24k_writing_generated_with_labels.csv --model_path model_output/best_model.pt --max_samples 24000
+Using device: mps
+Model config: sentence-transformers/all-MiniLM-L12-v2
+LoRA enabled during training: False
+Loaded model from epoch 2
+Model RMSE: 0.2809
+Model MAE: 0.2300
+Model R²: 0.0579
+
+Loaded 24000 samples
+Found label column 'error'
+Adjusted batch size to 8 for MPS
+Generating predictions: 100%|██████████████████████████████████████████████████████████████████████████████████████████████████████▉| 2999/3000 [04:14<00:00, 11.19it/s]Reached max_samples limit: 24000
+Generating predictions: 100%|██████████████████████████████████████████████████████████████████████████████████████████████████████▉| 2999/3000 [04:14<00:00, 11.76it/s]
+
+Model Performance (on 24000 samples):
+MSE: 0.0743
+RMSE: 0.2726
+MAE: 0.2219
+
+Baseline (predict mean=0.5547):
+MSE: 0.0825
+RMSE: 0.2873
+
+Prediction Statistics:
+Mean: 0.5626
+Std: 0.0828
+Min: 0.3351
+Max: 1.0929
+
+Label Statistics:
+Mean: 0.5547
+Std: 0.2873
+Min: 0.0000
+Max: 1.9887
+
+================================================================================
+TOP 10 HIGHEST PREDICTIONS:
+================================================================================
+
+[1] Prediction: 1.0929
+    Actual: 1.0000
+    Essay preview: [ CW ] Write a scene between 2 or more characters using only dialogue
+...
+--------------------------------------------------------------------------------
+
+[2] Prediction: 1.0929
+    Actual: 1.0000
+    Essay preview: [ CW ] Write a scene between 2 or more characters using only dialogue
+...
+--------------------------------------------------------------------------------
+
+[3] Prediction: 1.0394
+    Actual: 0.9714
+    Essay preview: [ WP ] He sighed .
+...
+--------------------------------------------------------------------------------
+
+[4] Prediction: 0.9919
+    Actual: 0.8433
+    Essay preview: [ FF ] `` It was the last time I spoke to him . ''
+...
+--------------------------------------------------------------------------------
+
+[5] Prediction: 0.9919
+    Actual: 1.0000
+    Essay preview: [ FF ] `` It was the last time I spoke to him . ''
+...
+--------------------------------------------------------------------------------
+
+[6] Prediction: 0.9304
+    Actual: 1.0000
+    Essay preview: [ WP ] She was almost beautiful .
+...
+--------------------------------------------------------------------------------
+
+[7] Prediction: 0.9293
+    Actual: 1.0000
+    Essay preview: [ CW ] Write the end of a relationship in dialogue only .
+...
+--------------------------------------------------------------------------------
+
+[8] Prediction: 0.9266
+    Actual: 0.7574
+    Essay preview: [ CW ] Write a fight scene without the use of dialogue
+...
+--------------------------------------------------------------------------------
+
+[9] Prediction: 0.9251
+    Actual: 0.3901
+    Essay preview: I 'm an actor looking for a monologue .
+...
+--------------------------------------------------------------------------------
+
+[10] Prediction: 0.9251
+    Actual: 1.0836
+    Essay preview: I 'm an actor looking for a monologue .
+...
+--------------------------------------------------------------------------------
+
+================================================================================
+TOP 10 LOWEST PREDICTIONS:
+================================================================================
+
+[1] Prediction: 0.3540
+    Actual: 0.2075
+    Essay preview: [ WP ] On the planet you live on , memories can only be fully remembered once . But because of this , when you replay the memory , its as if you are right back in it ... The touches , the smells , the...
+--------------------------------------------------------------------------------
+
+[2] Prediction: 0.3519
+    Actual: 0.7999
+    Essay preview: [ WP ] You die . As you regain consciousness , you realize that you are in heaven . However , your expectations of a utopia are quickly ruined when you see that all posts have been abandoned , and a w...
+--------------------------------------------------------------------------------
+
+[3] Prediction: 0.3518
+    Actual: 0.3562
+    Essay preview: [ WP ] One day during group meditation you reach that elusive and ephemeral state of enlightenment - but instead of the promised bliss , your new understanding of things shakes the foundations of your...
+--------------------------------------------------------------------------------
+
+[4] Prediction: 0.3515
+    Actual: 0.3736
+    Essay preview: [ WP ] The afterlife is not based on how you live , but how you die - The more horrific and painful the death , the better the heaven . Conversely , the happier you are when you die , the deeper into ...
+--------------------------------------------------------------------------------
+
+[5] Prediction: 0.3509
+    Actual: 0.0000
+    Essay preview: You are a Marine in Vietnam , the year is 1967 . While out on a patrol in the Central Highlands , your platoon stumbles upon an old abandoned Catholic church that seems to have been built during Frenc...
+--------------------------------------------------------------------------------
+
+[6] Prediction: 0.3478
+    Actual: 0.3054
+    Essay preview: [ WP ] You reach the afterlife , but before you find out where you 'll end up , you have to watch the entire life of someone and decide where they should go . What you do n't know is all of your memor...
+--------------------------------------------------------------------------------
+
+[7] Prediction: 0.3475
+    Actual: 0.0000
+    Essay preview: Shortly after dying , you wake up as a newborn just now departing the womb . As the days pass , memories from your previous life begin disappearing . [ WP ]
+...
+--------------------------------------------------------------------------------
+
+[8] Prediction: 0.3442
+    Actual: 0.4502
+    Essay preview: [ wp ] When someone dies , they go to a platform where you can choose to move in to the afterlife , not knowing whether you will go to heaven or hell . You meet someone who has stood there for milleni...
+--------------------------------------------------------------------------------
+
+[9] Prediction: 0.3442
+    Actual: 0.4996
+    Essay preview: [ wp ] When someone dies , they go to a platform where you can choose to move in to the afterlife , not knowing whether you will go to heaven or hell . You meet someone who has stood there for milleni...
+--------------------------------------------------------------------------------
+
+[10] Prediction: 0.3351
+    Actual: 0.4492
+    Essay preview: [ WP ] The afterlife is really an individual utopia reflecting the person who died . The narrator discovers this after somehow ending up in the same place as one of history 's most terrifying notable ...
+--------------------------------------------------------------------------------
+
+Histogram saved to: ./evaluation_output/prediction_histogram_generated_post_classification_full_24k_writing_generated_with_labels.png
+Predictions saved to: ./evaluation_output/predictions_generated_post_classification_full_24k_writing_generated_with_labels.csv

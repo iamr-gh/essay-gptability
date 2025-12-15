@@ -11,8 +11,8 @@ def main():
     labels = []
     generations = []
     for i in range(len(df)):
-        ai_gen = df["response"][i]
         human_gen = df["full_text"][i]
+        ai_gen = df["response"][i]
 
         generations.append(human_gen)
         labels.append(0)

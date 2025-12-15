@@ -137,7 +137,7 @@ def main():
     epochs = 1
 
     b, lls = logistic_regression(
-        mat_csr, label_ids, 1e-6, int(epochs * len(label_ids) * 0.3), loss_capture=30
+        mat_csr, label_ids, 1e-6, int(0.5 * epochs * len(label_ids)), loss_capture=30
     )
 
     # Plot 1: Log Likelihood over Iterations
@@ -174,6 +174,9 @@ def main():
     gen_df = pd.read_csv(second_fname)
 
     errors = []
+
+    ai_errors = []
+    human_errors = []
     for i in range(len(gen_df["response"])):
         ai_gen = str(gen_df["response"][i])
         human_gen = str(gen_df["full_text"][i])
@@ -186,16 +189,31 @@ def main():
 
         # fitting to a value of 1 means that the model is consistently wrong
         # always predicting 0.5 might be a local minima?
-        error = abs(1 - ai_pred) + abs(human_pred - 0)
-        assert error == (1 - ai_pred) + human_pred
-        errors.append(error)
+
+        human_error = human_pred
+        ai_error = 1 - ai_pred
+
+        # this should be low, othwerwise loss function of model is wrong
+        errors.append(human_error + ai_error)
+        # errors.append(ai_error)
+        ai_errors.append(ai_error)
+        human_errors.append(human_error)
+
+        # just error around how good ai example
+        # error = abs(1 - ai_pred)
+
+        # error = human_pred - ai_pred
+
+        # + abs(human_pred - 0)
+        # assert error == (1 - ai_pred) + human_pred
+        # errors.append(error)
 
     gen_df["error"] = np.array(errors)
 
     gen_df.to_csv(
         f"generated_post_classification_{filename.split('.')[0]}.csv", index=False
     )
-
+    #
     # Plot 2: Error Distribution Histogram
     fig, ax = plt.subplots(figsize=(14, 9))
     ax.hist(
@@ -204,7 +222,9 @@ def main():
     ax.set_xlabel("Prediction Error", fontweight="bold")
     ax.set_ylabel("Frequency", fontweight="bold")
     ax.set_title(
-        "Distribution of Prediction Errors per Prompt", fontweight="bold", pad=20
+        "Distribution of Combination Prediction Errors per Prompt",
+        fontweight="bold",
+        pad=20,
     )
     ax.grid(True, alpha=0.3, axis="y", linewidth=1.5)
     ax.spines["top"].set_visible(False)
@@ -212,6 +232,58 @@ def main():
     plt.tight_layout()
     plt.savefig(
         f"first_model_error_histogram_{filename.split('.')[0]}.png",
+        dpi=300,
+        bbox_inches="tight",
+    )
+    plt.close()
+
+    fig, ax = plt.subplots(figsize=(14, 9))
+    ax.hist(
+        ai_errors,
+        bins=100,
+        color="#A23B72",
+        edgecolor="black",
+        linewidth=1.2,
+        alpha=0.85,
+    )
+    ax.set_xlabel("Prediction Error", fontweight="bold")
+    ax.set_ylabel("Frequency", fontweight="bold")
+    ax.set_title(
+        "Distribution of AI Prediction Errors per Prompt",
+        fontweight="bold",
+        pad=20,
+    )
+    ax.grid(True, alpha=0.3, axis="y", linewidth=1.5)
+    ax.spines["top"].set_visible(False)
+    ax.spines["right"].set_visible(False)
+    plt.tight_layout()
+    plt.savefig(
+        f"first_model_ai_error_histogram_{filename.split('.')[0]}.png",
+        dpi=300,
+        bbox_inches="tight",
+    )
+    plt.close()
+
+    fig, ax = plt.subplots(figsize=(14, 9))
+    ax.hist(
+        human_errors,
+        bins=100,
+        color="#A23B72",
+        edgecolor="black",
+        linewidth=1.2,
+        alpha=0.85,
+    )
+    ax.set_xlabel("Prediction Error", fontweight="bold")
+    ax.set_ylabel("Frequency", fontweight="bold")
+    ax.set_title(
+        "Distribution of Human Prediction Errors per Prompt", fontweight="bold", pad=20
+    )
+    ax.grid(True, alpha=0.3, axis="y", linewidth=1.5)
+    ax.spines["top"].set_visible(False)
+    ax.spines["right"].set_visible(False)
+    plt.tight_layout()
+    plt.savefig(
+        f"first_model_human_error_histogram_{filename.split('.')[0]}.png",
         dpi=300,
         bbox_inches="tight",
     )

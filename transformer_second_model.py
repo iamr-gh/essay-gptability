@@ -165,7 +165,7 @@ def main():
         "--data_path",
         type=str,
         required=True,
-        help='Path to CSV with "essay" and "error" columns (labels in range 0-2)',
+        help='Path to CSV with "user_prompt" and "error" columns (error in range 0-2)',
     )
     parser.add_argument(
         "--model_name", type=str, default="sentence-transformers/all-MiniLM-L12-v2"
@@ -174,7 +174,7 @@ def main():
     parser.add_argument("--epochs", type=int, default=10)
     parser.add_argument("--lr", type=float, default=2e-4)
     parser.add_argument("--max_length", type=int, default=256)
-    parser.add_argument("--use_lora", action="store_true", default=True)
+    parser.add_argument("--use_lora", action="store_true", default=False)
     parser.add_argument(
         "--use_hack",
         action="store_true",
@@ -204,6 +204,14 @@ def main():
     # --------------------
     df = pd.read_csv(args.data_path)
     print(f"Loaded {len(df)} samples")
+
+    # Check for required columns
+    if "user_prompt" not in df.columns or "error" not in df.columns:
+        raise ValueError(
+            "CSV must contain 'user_prompt' and 'error' columns. "
+            f"Found columns: {df.columns.tolist()}"
+        )
+
     print(f"Label range: [{df['error'].min():.2f}, {df['error'].max():.2f}]")
     print(f"Label mean: {df['error'].mean():.2f}, std: {df['error'].std():.2f}")
 
@@ -225,10 +233,10 @@ def main():
 
         def clean_text(text):
             return " ".join(
-                [word for word in text.split() if word.lower() not in stop_words]
+                [word for word in str(text).split() if word.lower() not in stop_words]
             )
 
-        df["user_prompt"] = df["essay"].apply(clean_text)
+        df["user_prompt"] = df["user_prompt"].apply(clean_text)
         print("Applied stopword removal hack")
 
     # Split data
@@ -268,7 +276,8 @@ def main():
 
     # Adjust batch size for MacBook Air M3
     if device.type == "mps":
-        args.batch_size = min(args.batch_size, 16)
+        args.batch_size = min(args.batch_size, 8)
+        print(f"Adjusted batch size to {args.batch_size} for MPS device")
 
     train_loader = DataLoader(train_dataset, batch_size=args.batch_size, shuffle=True)
     val_loader = DataLoader(val_dataset, batch_size=args.batch_size)

@@ -28,7 +28,6 @@ llm = Model(model_name="openrouter/openai/gpt-oss-20b:free", verbose=True)
 # for logging -- note that the considering 100 essays took 2 hrs when using local
 
 # need to do 24k iterations
-
 # local, serial: 30s / it                          -> 2,000 hrs
 # openrouter(grok 4.1 fast), serial:   15.2s / it   -> 1,013 hrs I think their provider is terrible
 # openrouter(k2 0711), serial:         9.3s / it   -> 620 hrs
