@@ -1,0 +1,487 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Essay Prompt GPT-ability Analyzer</title>
+    <style>
+        :root {
+            --bg-primary: #1a1a2e;
+            --bg-secondary: #16213e;
+            --bg-tertiary: #0f3460;
+            --text-primary: #eaeaea;
+            --text-secondary: #a0a0a0;
+            --accent: #e94560;
+            --success: #4ecca3;
+            --warning: #ffc947;
+            --danger: #e94560;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            min-height: 100vh;
+            line-height: 1.6;
+        }
+
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+
+        header {
+            text-align: center;
+            margin-bottom: 2rem;
+        }
+
+        h1 {
+            font-size: 2rem;
+            margin-bottom: 0.5rem;
+            background: linear-gradient(135deg, var(--accent), #ff6b6b);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .subtitle {
+            color: var(--text-secondary);
+            font-size: 1rem;
+        }
+
+        .card {
+            background: var(--bg-secondary);
+            border-radius: 12px;
+            padding: 1.5rem;
+            margin-bottom: 1.5rem;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+        }
+
+        .card-title {
+            font-size: 1.1rem;
+            margin-bottom: 1rem;
+            color: var(--text-primary);
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .sample-prompts {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+            gap: 0.75rem;
+        }
+
+        .sample-prompt {
+            background: var(--bg-tertiary);
+            border: 1px solid transparent;
+            border-radius: 8px;
+            padding: 0.75rem;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            text-align: left;
+        }
+
+        .sample-prompt:hover {
+            border-color: var(--accent);
+            transform: translateY(-2px);
+        }
+
+        .sample-prompt.gptable {
+            border-left: 3px solid var(--danger);
+        }
+
+        .sample-prompt.mixed {
+            border-left: 3px solid var(--warning);
+        }
+
+        .sample-prompt.human {
+            border-left: 3px solid var(--success);
+        }
+
+        .sample-prompt-label {
+            font-size: 0.7rem;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 0.25rem;
+        }
+
+        .sample-prompt.gptable .sample-prompt-label { color: var(--danger); }
+        .sample-prompt.mixed .sample-prompt-label { color: var(--warning); }
+        .sample-prompt.human .sample-prompt-label { color: var(--success); }
+
+        .sample-prompt-text {
+            font-size: 0.85rem;
+            color: var(--text-secondary);
+            display: -webkit-box;
+            -webkit-line-clamp: 2;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+        }
+
+        textarea {
+            width: 100%;
+            min-height: 150px;
+            background: var(--bg-tertiary);
+            border: 1px solid transparent;
+            border-radius: 8px;
+            padding: 1rem;
+            color: var(--text-primary);
+            font-size: 1rem;
+            font-family: inherit;
+            resize: vertical;
+            transition: border-color 0.2s ease;
+        }
+
+        textarea:focus {
+            outline: none;
+            border-color: var(--accent);
+        }
+
+        textarea::placeholder {
+            color: var(--text-secondary);
+        }
+
+        .button-row {
+            display: flex;
+            gap: 1rem;
+            margin-top: 1rem;
+        }
+
+        button {
+            background: var(--accent);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            padding: 0.75rem 1.5rem;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        button:hover:not(:disabled) {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 15px rgba(233, 69, 96, 0.4);
+        }
+
+        button:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+
+        button.secondary {
+            background: var(--bg-tertiary);
+        }
+
+        button.secondary:hover:not(:disabled) {
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+        }
+
+        .result-container {
+            display: none;
+        }
+
+        .result-container.visible {
+            display: block;
+        }
+
+        .score-display {
+            text-align: center;
+            padding: 1.5rem;
+        }
+
+        .score-value {
+            font-size: 3.5rem;
+            font-weight: 700;
+            margin-bottom: 0.5rem;
+        }
+
+        .score-label {
+            font-size: 1.2rem;
+            font-weight: 600;
+            margin-bottom: 1rem;
+        }
+
+        .score-bar {
+            height: 12px;
+            background: var(--bg-tertiary);
+            border-radius: 6px;
+            overflow: hidden;
+            margin: 1rem 0;
+        }
+
+        .score-bar-fill {
+            height: 100%;
+            border-radius: 6px;
+            transition: width 0.5s ease, background 0.5s ease;
+        }
+
+        .score-bar-labels {
+            display: flex;
+            justify-content: space-between;
+            font-size: 0.75rem;
+            color: var(--text-secondary);
+        }
+
+        .interpretation {
+            margin-top: 1rem;
+            padding: 1rem;
+            background: var(--bg-tertiary);
+            border-radius: 8px;
+            font-size: 0.95rem;
+        }
+
+        .loading-overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(26, 26, 46, 0.95);
+            z-index: 1000;
+            justify-content: center;
+            align-items: center;
+            flex-direction: column;
+        }
+
+        .loading-overlay.visible {
+            display: flex;
+        }
+
+        .spinner {
+            width: 50px;
+            height: 50px;
+            border: 3px solid var(--bg-tertiary);
+            border-top-color: var(--accent);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        .loading-text {
+            margin-top: 1rem;
+            color: var(--text-secondary);
+        }
+
+        .progress-bar {
+            width: 300px;
+            height: 6px;
+            background: var(--bg-tertiary);
+            border-radius: 3px;
+            margin-top: 1rem;
+            overflow: hidden;
+        }
+
+        .progress-bar-fill {
+            height: 100%;
+            background: var(--accent);
+            border-radius: 3px;
+            transition: width 0.3s ease;
+            width: 0%;
+        }
+
+        .status-bar {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.75rem 1rem;
+            background: var(--bg-tertiary);
+            border-radius: 8px;
+            margin-bottom: 1rem;
+            font-size: 0.9rem;
+        }
+
+        .status-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: var(--warning);
+        }
+
+        .status-dot.ready {
+            background: var(--success);
+        }
+
+        .status-dot.loading {
+            background: var(--warning);
+            animation: pulse 1.5s ease infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+
+        footer {
+            text-align: center;
+            margin-top: 2rem;
+            padding-top: 1rem;
+            border-top: 1px solid var(--bg-tertiary);
+            color: var(--text-secondary);
+            font-size: 0.85rem;
+        }
+
+        footer a {
+            color: var(--accent);
+            text-decoration: none;
+        }
+
+        footer a:hover {
+            text-decoration: underline;
+        }
+
+        @media (max-width: 600px) {
+            .container {
+                padding: 1rem;
+            }
+
+            h1 {
+                font-size: 1.5rem;
+            }
+
+            .sample-prompts {
+                grid-template-columns: 1fr;
+            }
+
+            .button-row {
+                flex-direction: column;
+            }
+
+            button {
+                width: 100%;
+                justify-content: center;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="loading-overlay" id="loadingOverlay">
+        <div class="spinner"></div>
+        <div class="loading-text" id="loadingText">Loading models...</div>
+        <div class="progress-bar">
+            <div class="progress-bar-fill" id="progressBar"></div>
+        </div>
+    </div>
+
+    <div class="container">
+        <header>
+            <h1>Essay Prompt GPT-ability Analyzer</h1>
+            <p class="subtitle">Predict how well LLMs can imitate human writing for a given prompt</p>
+        </header>
+
+        <div class="status-bar">
+            <div class="status-dot loading" id="statusDot"></div>
+            <span id="statusText">Loading models...</span>
+        </div>
+
+        <div class="card">
+            <h2 class="card-title">Sample Prompts</h2>
+            <div class="sample-prompts" id="samplePrompts">
+                <!-- GPT-able prompts (high scores) -->
+                <button class="sample-prompt gptable" data-prompt="[CW] Write a scene between 2 or more characters using only dialogue. No narration, no action lines, just dialogue.">
+                    <div class="sample-prompt-label">Most GPT-able</div>
+                    <div class="sample-prompt-text">[CW] Write a scene between 2 or more characters using only dialogue...</div>
+                </button>
+                <button class="sample-prompt gptable" data-prompt="[WP] He sighed.">
+                    <div class="sample-prompt-label">Most GPT-able</div>
+                    <div class="sample-prompt-text">[WP] He sighed.</div>
+                </button>
+                <button class="sample-prompt gptable" data-prompt="[WP] She was almost beautiful.">
+                    <div class="sample-prompt-label">Most GPT-able</div>
+                    <div class="sample-prompt-text">[WP] She was almost beautiful.</div>
+                </button>
+
+                <!-- Mixed prompts -->
+                <button class="sample-prompt mixed" data-prompt="[WP] Write about a character who discovers they have an unusual superpower that seems useless at first.">
+                    <div class="sample-prompt-label">Mixed</div>
+                    <div class="sample-prompt-text">[WP] Write about a character who discovers they have an unusual superpower...</div>
+                </button>
+
+                <!-- Human-distinctive prompts (low scores) -->
+                <button class="sample-prompt human" data-prompt="[WP] On the planet you live on, memories can only be fully remembered once. But because of this, when you replay the memory, its as if you are right back in it. The touches, the smells, the emotions - everything is real again for those few moments.">
+                    <div class="sample-prompt-label">Human-Distinctive</div>
+                    <div class="sample-prompt-text">[WP] On the planet you live on, memories can only be fully remembered once...</div>
+                </button>
+                <button class="sample-prompt human" data-prompt="[WP] You die. As you regain consciousness, you realize that you are in heaven. However, your expectations of a utopia are quickly ruined when you see that all posts have been abandoned, and a war has broken out.">
+                    <div class="sample-prompt-label">Human-Distinctive</div>
+                    <div class="sample-prompt-text">[WP] You die. As you regain consciousness, you realize that you are in heaven...</div>
+                </button>
+                <button class="sample-prompt human" data-prompt="[WP] The afterlife is not based on how you live, but how you die. The more horrific and painful the death, the better the heaven. Conversely, the happier you are when you die, the deeper into hell you go.">
+                    <div class="sample-prompt-label">Human-Distinctive</div>
+                    <div class="sample-prompt-text">[WP] The afterlife is not based on how you live, but how you die...</div>
+                </button>
+                <button class="sample-prompt human" data-prompt="You are a Marine in Vietnam, the year is 1967. While out on a patrol in the Central Highlands, your platoon stumbles upon an old abandoned Catholic church that seems to have been built during French colonial rule.">
+                    <div class="sample-prompt-label">Human-Distinctive</div>
+                    <div class="sample-prompt-text">You are a Marine in Vietnam, the year is 1967. While out on a patrol...</div>
+                </button>
+            </div>
+        </div>
+
+        <div class="card">
+            <h2 class="card-title">Enter Your Prompt</h2>
+            <textarea 
+                id="promptInput" 
+                placeholder="Enter an essay or creative writing prompt to analyze its GPT-ability..."
+            ></textarea>
+            <div class="button-row">
+                <button id="analyzeBtn" disabled>
+                    <span>Analyze Prompt</span>
+                </button>
+                <button id="clearBtn" class="secondary">
+                    <span>Clear</span>
+                </button>
+            </div>
+        </div>
+
+        <div class="card result-container" id="resultContainer">
+            <h2 class="card-title">Analysis Result</h2>
+            <div class="score-display">
+                <div class="score-value" id="scoreValue">--</div>
+                <div class="score-label" id="scoreLabel">--</div>
+                <div class="score-bar">
+                    <div class="score-bar-fill" id="scoreBarFill"></div>
+                </div>
+                <div class="score-bar-labels">
+                    <span>0 (Human-Distinctive)</span>
+                    <span>2 (GPT-able)</span>
+                </div>
+            </div>
+            <div class="interpretation" id="interpretation">
+                <!-- Interpretation text will be inserted here -->
+            </div>
+        </div>
+
+        <footer>
+            <p>
+                Based on research by Ibrahim Musaddequr Rahman | 
+                <a href="https://github.com/iamr-gh/essay-gptability" target="_blank">GitHub</a>
+            </p>
+            <p style="margin-top: 0.5rem;">
+                Model: all-MiniLM-L12-v2 + Custom Regression Head | 
+                Runs entirely in your browser using WebAssembly
+            </p>
+        </footer>
+    </div>
+
+    <!-- Load ONNX Runtime Web as regular script (required for WebAssembly loading) -->
+    <script src="https://cdn.jsdelivr.net/npm/onnxruntime-web@1.20.1/dist/ort.min.js"></script>
+    
+    <!-- Then load our module -->
+    <script type="module" src="inference.js"></script>
+</body>
+</html>
