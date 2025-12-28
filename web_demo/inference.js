@@ -23,7 +23,7 @@ env.useBrowserCache = true;
 
 // Model configuration
 const ENCODER_MODEL = 'Xenova/all-MiniLM-L12-v2';
-const REGRESSOR_PATH = './models/regressor_quantized.onnx';
+const REGRESSOR_PATH = './models/regressor.onnx';
 
 // Global model instances
 let extractor = null;
@@ -161,7 +161,12 @@ async function predict(text) {
  * @returns {object} - Label, color, and interpretation text
  */
 function getInterpretation(score) {
-    if (score < 0.7) {
+    // in practice, the range is much tighter
+    // above 0.5 is most gpt-able
+    // below 0.4 is most human-distinctive
+    // in between is a mix
+
+    if (score < 0.4) {
         return {
             label: 'Human-Distinctive',
             color: '#4ecca3',
@@ -169,7 +174,7 @@ function getInterpretation(score) {
                    Prompts like this often involve philosophical depth, specific historical/cultural contexts, 
                    or complex emotional scenarios that require genuine human experience to address authentically.`
         };
-    } else if (score < 1.3) {
+    } else if (score < 0.5) {
         return {
             label: 'Mixed',
             color: '#ffc947',
@@ -204,7 +209,7 @@ function displayResult(score) {
     scoreLabel.style.color = interp.color;
     
     // Update progress bar
-    const percentage = (score / 2) * 100;
+    const percentage = ((score - 0.2) / 0.4) * 100;
     scoreBarFill.style.width = `${percentage}%`;
     scoreBarFill.style.background = interp.color;
     
